@@ -32,7 +32,7 @@
         <file>
             <source>../../conf/wso2agent.sh</source>
             <outputDirectory>wso2agent-${pom.version}</outputDirectory>
-            <fileMode>644</fileMode>
+            <fileMode>755</fileMode>
         </file>
         <file>
             <source>../../conf/wso2agent.bat</source>
@@ -42,7 +42,7 @@
         <file>
             <source>../../conf/ciphertool.sh</source>
             <outputDirectory>wso2agent-${pom.version}</outputDirectory>
-            <fileMode>644</fileMode>
+            <fileMode>755</fileMode>
         </file>
         <file>
             <source>../../conf/ciphertool.bat</source>

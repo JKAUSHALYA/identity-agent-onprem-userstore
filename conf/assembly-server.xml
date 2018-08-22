@@ -27,7 +27,7 @@
         <file>
             <source>../../conf/wso2server.sh</source>
             <outputDirectory>wso2server-${pom.version}</outputDirectory>
-            <fileMode>644</fileMode>
+            <fileMode>755</fileMode>
         </file>
         <file>
             <source>../../conf/conf/deployment.yml</source>
