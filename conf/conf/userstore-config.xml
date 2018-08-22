@@ -17,7 +17,7 @@
 		<Property name="ConnectionURL">ldap://localhost:10389</Property>
 		<Property name="ConnectionName">uid=admin,ou=system</Property>
 		<Property name="ConnectionPassword">admin</Property>
-		<Property name="UserSearchBase">ou=system</Property>
+		<Property name="UserSearchBase">ou=Users,dc=wso2,dc=org</Property>
 		<Property name="UserNameAttribute">uid</Property>
 		<Property name="UserNameSearchFilter">(&amp;(objectClass=person)(uid=?))</Property>
 		<Property name="UserNameListFilter">(objectClass=person)</Property>

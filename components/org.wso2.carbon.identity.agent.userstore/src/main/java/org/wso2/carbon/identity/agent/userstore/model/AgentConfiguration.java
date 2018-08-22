@@ -23,6 +23,15 @@ package org.wso2.carbon.identity.agent.userstore.model;
 public class AgentConfiguration {
 
     private String serverUrl;
+    private String tenantDomain;
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
+    }
 
     public String getServerUrl() {
         return serverUrl;

@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.agent.userstore.util;
 
+import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 
 /**
@@ -40,5 +41,14 @@ public class UserStoreUtils {
             combinedName = userName;
         }
         return combinedName;
+    }
+
+    public static String getUserStoreAwareUsername(String username) {
+        String tenantDomain = AgentConfigUtil.build().getTenantDomain();
+        if (username.contains("@") &&
+                tenantDomain.equals(username.substring(username.indexOf("@") + 1))) {
+            username = username.substring(0, username.indexOf(tenantDomain) - 1);
+        }
+        return username;
     }
 }

@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+import org.wso2.carbon.identity.agent.userstore.util.UserStoreUtils;
 import org.wso2.carbon.identity.user.store.common.MessageRequestUtil;
 import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 
@@ -158,19 +159,20 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
+        String username = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
+        username = UserStoreUtils.getUserStoreAwareUsername(username);
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to authenticate user " + requestData.get(
-                    UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
+            LOGGER.debug("Starting to authenticate user " + username);
         }
 
         boolean isAuthenticated = userStoreManager.doAuthenticate(
-                requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME),
+                username,
                 requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
         String authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Authentication completed. User: " + requestData.get(
-                    UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " result: " + isAuthenticated);
+            LOGGER.debug("Authentication completed. User: " + username + " result: " + isAuthenticated);
         }
         if (isAuthenticated) {
             authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
@@ -189,12 +191,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
 
+        String username = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
+        username = UserStoreUtils.getUserStoreAwareUsername(username);
+
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to get claims for user: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
+            LOGGER.debug("Starting to get claims for user: " + username);
         }
 
-        String username = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
         String claims = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CLAIMS);
         String[] claimArray = claims.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
@@ -203,8 +206,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         JSONObject returnObject = new JSONObject(propertyMap);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Claims retrieval completed. User: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " claims: " + propertyMap
+            LOGGER.debug("Claims retrieval completed. User: " + username + " claims: " + propertyMap
                     .toString());
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
@@ -219,11 +221,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      */
     private void processGetUserRolesRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
         JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to get user roles for user: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME));
-        }
+
         String username = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
+        username = UserStoreUtils.getUserStoreAwareUsername(username);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Starting to get user roles for user: " + username);
+        }
 
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
         String[] roles = userStoreManager.doGetExternalRoleListOfUser(username);
@@ -232,8 +236,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         jsonObject.put("groups", usernameArray);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("User roles retrieval completed. User: " + requestData
-                    .get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME) + " roles: " + Arrays.toString(
+            LOGGER.debug("User roles retrieval completed. User: " + username + " roles: " + Arrays.toString(
                     roles));
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
@@ -259,8 +262,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
         String[] roleNames = userStoreManager.doGetRoleNames("*", limit);
         JSONObject returnObject = new JSONObject();
-        JSONArray usernameArray = new JSONArray(roleNames);
-        returnObject.put("groups", usernameArray);
+        JSONArray rolesArray = new JSONArray(roleNames);
+        returnObject.put("groups", rolesArray);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Roles retrieval completed.");
         }
