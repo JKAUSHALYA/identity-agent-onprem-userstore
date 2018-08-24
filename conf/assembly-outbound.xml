@@ -65,7 +65,7 @@
             <fileMode>644</fileMode>
         </file>
         <file>
-            <source>../../conf/conf/userstore-config.xml</source>
+            <source>../../conf/conf/userstores/userstore-config.xml</source>
             <outputDirectory>wso2agent-${pom.version}/conf/userstores</outputDirectory>
             <fileMode>644</fileMode>
         </file>
