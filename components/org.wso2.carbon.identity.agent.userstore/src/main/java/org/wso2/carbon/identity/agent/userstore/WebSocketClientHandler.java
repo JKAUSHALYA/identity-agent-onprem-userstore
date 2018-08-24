@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import javax.net.ssl.SSLException;
@@ -157,7 +158,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     private void processAuthenticationRequest(Channel channel, JSONObject requestObj) throws UserStoreException {
 
         JSONObject requestData = requestObj.getJSONObject(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA);
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
         String username = requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_NAME);
         username = UserStoreUtils.getUserStoreAwareUsername(username);
@@ -166,9 +166,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             LOGGER.debug("Starting to authenticate user " + username);
         }
 
-        boolean isAuthenticated = userStoreManager.doAuthenticate(
-                username,
-                requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
+        boolean isAuthenticated = false;
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
+        if (userStoreManager != null) {
+            isAuthenticated = userStoreManager.doAuthenticate(
+                    username,
+                    requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
+        }
         String authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
 
         if (LOGGER.isDebugEnabled()) {
@@ -200,9 +204,13 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         String claims = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CLAIMS);
         String[] claimArray = claims.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
 
-        Map<String, String> propertyMap = userStoreManager.getUserClaimValues(username, claimArray);
+        Map<String, String> propertyMap = new HashMap<>();
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
+        if (userStoreManager != null) {
+            propertyMap = userStoreManager.getUserClaimValues(username, claimArray);
+        }
+
         JSONObject returnObject = new JSONObject(propertyMap);
 
         if (LOGGER.isDebugEnabled()) {
@@ -229,8 +237,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
             LOGGER.debug("Starting to get user roles for user: " + username);
         }
 
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-        String[] roles = userStoreManager.doGetExternalRoleListOfUser(username);
+        String[] roles = new String[0];
+        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
+        if (userStoreManager != null) {
+            roles = userStoreManager.doGetExternalRoleListOfUser(username);
+        }
+
         JSONObject jsonObject = new JSONObject();
         JSONArray usernameArray = new JSONArray(roles);
         jsonObject.put("groups", usernameArray);
@@ -259,8 +271,18 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (limit == 0) {
             limit = CommonConstants.MAX_USER_LIST;
         }
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-        String[] roleNames = userStoreManager.doGetRoleNames("*", limit);
+
+        String[] roleNames = new String[0];
+
+        Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Getting roles from user store with Domain : " + userStoreManager.getUserStoreDomain());
+            }
+            String[] userStoreRoles = userStoreManager.doGetRoleNames("*", limit);
+            roleNames = UserStoreUtils.combineArrays(roleNames, userStoreRoles);
+        }
+
         JSONObject returnObject = new JSONObject();
         JSONArray rolesArray = new JSONArray(roleNames);
         returnObject.put("groups", rolesArray);
@@ -290,10 +312,20 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (limit == 0) {
             limit = CommonConstants.MAX_USER_LIST;
         }
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-        String[] roleNames = userStoreManager.doListUsers(filter, limit);
+
+        String[] usernames = new String[0];
+
+        Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Getting users from user store with Domain : " + userStoreManager.getUserStoreDomain());
+            }
+            String[] userStoreUsers = userStoreManager.doListUsers("*", limit);
+            usernames = UserStoreUtils.combineArrays(usernames, userStoreUsers);
+        }
+
         JSONObject returnObject = new JSONObject();
-        JSONArray usernameArray = new JSONArray(roleNames);
+        JSONArray usernameArray = new JSONArray(usernames);
         returnObject.put("usernames", usernameArray);
 
         if (LOGGER.isDebugEnabled()) {

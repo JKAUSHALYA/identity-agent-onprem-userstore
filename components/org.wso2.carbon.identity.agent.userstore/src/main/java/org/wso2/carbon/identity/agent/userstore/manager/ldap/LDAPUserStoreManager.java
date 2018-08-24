@@ -1998,4 +1998,13 @@ public class LDAPUserStoreManager implements UserStoreManager {
         }
         return isUserInRole;
     }
+
+    public String getUserStoreDomain() {
+        String domainName = userStoreProperties.get(LDAPConstants.DOMAIN_NAME);
+        if (domainName != null) {
+            return domainName;
+        } else {
+            return "PRIMARY";
+        }
+    }
 }

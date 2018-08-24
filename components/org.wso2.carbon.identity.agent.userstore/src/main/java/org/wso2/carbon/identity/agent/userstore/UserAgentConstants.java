@@ -33,5 +33,7 @@ public class UserAgentConstants {
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_LIMIT = "limit";
     public static final String UM_JSON_ELEMENT_REQUEST_DATA_GET_USER_FILTER = "filter";
 
-    public static final String USERSTORE_CONFIG_FILE = "userstore-config.xml";
+    public static final String AGENT_CONFIG_DIRECTORY = "conf";
+    public static final String USER_STORE_CONFIG_DIRECTORY = "userstores";
+
 }

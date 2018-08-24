@@ -17,11 +17,16 @@
 */
 package org.wso2.carbon.identity.agent.userstore.resource;
 
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManager;
 import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -64,18 +69,39 @@ public class StatusResource {
             LOGGER.debug("Checking agent LDAP health.");
         }
 
+        Map<String, UserStoreManager> userStoreManagers;
         try {
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-            boolean connectionStatus = userStoreManager.getConnectionStatus();
-            if (!connectionStatus) {
-                LOGGER.error("LDAP health check failed.");
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            }
+            userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
         } catch (UserStoreException e) {
             LOGGER.error("LDAP health check failed.", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.ok(SUCCESS_MESSAGE, MediaType.APPLICATION_JSON).build();
+
+        List<String> failedConnections = new ArrayList<>();
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            try {
+                boolean connectionStatus = userStoreManager.getConnectionStatus();
+                if (!connectionStatus) {
+                    LOGGER.error("LDAP Connection status failed for User Store with Domain: "
+                            + userStoreManager.getUserStoreDomain());
+                    failedConnections.add(userStoreManager.getUserStoreDomain());
+                }
+            } catch (UserStoreException e) {
+                LOGGER.error("LDAP health check failed for User Store with Domain: "
+                        + userStoreManager.getUserStoreDomain(), e);
+                failedConnections.add(userStoreManager.getUserStoreDomain());
+            }
+        }
+
+        if (failedConnections.isEmpty()) {
+            return Response.ok(SUCCESS_MESSAGE, MediaType.APPLICATION_JSON).build();
+        } else {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("error", "LDAP health check failed");
+            jsonObject.addProperty("message", "LDAP health check failed for domains : "
+                    + String.join(",", failedConnections));
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(jsonObject).build();
+        }
     }
 
 }

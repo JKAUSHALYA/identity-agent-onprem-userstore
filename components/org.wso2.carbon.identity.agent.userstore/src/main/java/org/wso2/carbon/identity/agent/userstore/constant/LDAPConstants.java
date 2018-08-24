@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.agent.userstore.constant;
  * Constants specific to LDAP Userstores.
  */
 public class LDAPConstants {
+    public static final String DOMAIN_NAME = "DomainName";
     public static final String CONNECTION_URL = "ConnectionURL";
     public static final String CONNECTION_NAME = "ConnectionName";
     public static final String CONNECTION_PASSWORD = "ConnectionPassword";

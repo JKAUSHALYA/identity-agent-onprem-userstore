@@ -20,8 +20,6 @@ import org.apache.axiom.om.OMXMLParserWrapper;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.identity.agent.userstore.UserAgentConstants;
-import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
 import org.wso2.carbon.identity.agent.userstore.constant.XMLConfigurationConstants;
 import org.wso2.carbon.identity.agent.userstore.exception.UserStoreException;
 import org.wso2.carbon.identity.agent.userstore.exception.XMLException;
@@ -46,18 +44,17 @@ import javax.xml.stream.XMLStreamException;
 class UserStoreConfigurationXMLProcessor {
 
     private static Logger log = LoggerFactory.getLogger(UserStoreConfigurationXMLProcessor.class);
-    private static final String CONF_DIR = "conf";
     private InputStream inStream = null;
     private SecretResolver secretResolver;
 
     /**
      * @return The Map of user store properties
      */
-    Map<String, String> buildUserStoreConfigurationFromFile() throws UserStoreException {
+    Map<String, String> buildUserStoreConfigurationFromFile(String path) throws UserStoreException {
         OMElement rootElement;
         Map<String, String> properties;
         try {
-            rootElement = getRootElement();
+            rootElement = getRootElement(path);
             properties = buildUserStoreConfiguration(rootElement);
 
             if (inStream != null) {
@@ -120,17 +117,18 @@ class UserStoreConfigurationXMLProcessor {
     }
 
     /**
-     * @return The <Configuration> element of the userstore-mgt.xml file.
+     * @param userStoreConfigPath Path to the configuration file
+     * @return The <Configuration> element of the given file.
      * @throws javax.xml.stream.XMLStreamException If an error occurs in building the XML configurations.
      * @throws java.io.IOException If the file does not exist, is a directory rather than a regular file,
      * or for some other reason cannot be opened for reading.
      * @throws UserStoreException If the inputStream is null or cannot validate the XML file.
      */
-    private OMElement getRootElement() throws XMLStreamException, IOException, UserStoreException {
+    private OMElement getRootElement(String userStoreConfigPath) throws XMLStreamException, IOException,
+            UserStoreException {
         OMXMLParserWrapper builder;
 
-        File profileConfigXml = new File(System.getProperty(CommonConstants.CARBON_HOME),
-                CONF_DIR + File.separator + UserAgentConstants.USERSTORE_CONFIG_FILE);
+        File profileConfigXml = new File(userStoreConfigPath);
         if (profileConfigXml.exists()) {
 
             inStream = new FileInputStream(profileConfigXml);

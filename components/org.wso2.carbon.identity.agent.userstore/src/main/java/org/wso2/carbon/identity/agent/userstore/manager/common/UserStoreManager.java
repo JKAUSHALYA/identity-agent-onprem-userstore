@@ -111,4 +111,10 @@ public interface UserStoreManager {
      * @throws UserStoreException If a required attribute of the UserStoreManager is missing.
      */
     void setUserStoreProperties(Map<String, String> userStoreProperties) throws UserStoreException;
+
+    /**
+     * Returns the Domain name of the user store
+     * @return Domain Name of the user store
+     */
+    String getUserStoreDomain();
 }
