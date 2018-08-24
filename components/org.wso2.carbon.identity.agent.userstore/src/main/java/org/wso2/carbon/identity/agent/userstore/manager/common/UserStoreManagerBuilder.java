@@ -94,7 +94,13 @@ public class UserStoreManagerBuilder {
                     log.debug("Initializing user store from file : " + file.getPath());
                 }
                 UserStoreManager userStoreManager = initializeUserStoreManager(file.getAbsolutePath());
-                userStoreManagers.put(userStoreManager.getUserStoreDomain(), userStoreManager);
+                if (userStoreManagers.containsKey(userStoreManager.getUserStoreDomain())) {
+                    log.error("An UserStore exists with the same Domain Name : "
+                            + userStoreManager.getUserStoreDomain() + ". Hence ignoring the user store config file : "
+                            + file.getAbsolutePath());
+                } else {
+                    userStoreManagers.put(userStoreManager.getUserStoreDomain(), userStoreManager);
+                }
             }
         } else {
             String message = "No user store configuration files found. At lease one user store configuration " +
