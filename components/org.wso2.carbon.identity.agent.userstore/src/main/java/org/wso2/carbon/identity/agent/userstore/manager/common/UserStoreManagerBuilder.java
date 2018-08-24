@@ -99,6 +99,10 @@ public class UserStoreManagerBuilder {
                             + userStoreManager.getUserStoreDomain() + ". Hence ignoring the user store config file : "
                             + file.getAbsolutePath());
                 } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Successfully added user store with Domain: "
+                                + userStoreManager.getUserStoreDomain());
+                    }
                     userStoreManagers.put(userStoreManager.getUserStoreDomain(), userStoreManager);
                 }
             }
