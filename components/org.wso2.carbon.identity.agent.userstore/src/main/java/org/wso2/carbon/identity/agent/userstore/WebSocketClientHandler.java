@@ -167,12 +167,20 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         }
 
         boolean isAuthenticated = false;
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
-        if (userStoreManager != null) {
-            isAuthenticated = userStoreManager.doAuthenticate(
-                    username,
+
+        Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Authenticating user in user store with Domain : "
+                        + userStoreManager.getUserStoreDomain());
+            }
+            isAuthenticated = userStoreManager.doAuthenticate(username,
                     requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
+            if (isAuthenticated) {
+                break;
+            }
         }
+
         String authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
 
         if (LOGGER.isDebugEnabled()) {
@@ -238,9 +246,14 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         }
 
         String[] roles = new String[0];
-        UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
-        if (userStoreManager != null) {
-            roles = userStoreManager.doGetExternalRoleListOfUser(username);
+
+        Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Getting roles from user store with Domain : " + userStoreManager.getUserStoreDomain());
+            }
+            String[] userStoreRoles = userStoreManager.doGetExternalRoleListOfUser(username);
+            roles = UserStoreUtils.combineArrays(roles, userStoreRoles);
         }
 
         JSONObject jsonObject = new JSONObject();
