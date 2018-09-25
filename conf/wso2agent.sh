@@ -153,6 +153,9 @@ if [ "$CMD" = "--debug" ]; then
   CMD="RUN"
   JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=$PORT"
   echo "Please start the remote debugging client to continue..."
+elif [ "$CMD" = "stop" ]; then
+  kill -term `cat "$CARBON_HOME"/wso2agent.pid`
+  exit 0
 fi
 echo "###############################################################################################################"
 echo "#                                                                                                             #"

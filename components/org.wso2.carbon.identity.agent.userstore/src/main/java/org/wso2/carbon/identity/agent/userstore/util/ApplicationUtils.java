@@ -16,12 +16,65 @@
 
 package org.wso2.carbon.identity.agent.userstore.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+
 /**
  *  Used to get org.wso2.carbon.identity.agent.outbound.Application properties.
  */
 public class ApplicationUtils {
+    private static final String PROCESS_FILE_NAME = "wso2agent.pid";
+    private static Logger log = LoggerFactory.getLogger(ApplicationUtils.class);
+
     public static String getProductHomePath() {
         return System.getProperty("user.dir");
+    }
+
+    /**
+     * Write the process ID of this process to wso2agent.pid file.
+     */
+    public static void writePID() {
+
+        String[] cmd = {"bash", "-c", "echo $PPID"};
+        Process p;
+        String pid = "";
+        try {
+            p = Runtime.getRuntime().exec(cmd);
+        } catch (IOException e) {
+            //Ignored. We might be invoking this on a Window platform. Therefore if an error occurs
+            //we simply ignore the error.
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder builder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            pid = builder.toString();
+        } catch (IOException e) {
+            log.error("Error while retrieving the process ID. ", e);
+        }
+
+        if (pid.length() != 0) {
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(Paths.get(getProductHomePath(), PROCESS_FILE_NAME).toString()),
+                    StandardCharsets.UTF_8))) {
+                writer.write(pid);
+            } catch (IOException e) {
+                log.error("Cannot write process ID to " + PROCESS_FILE_NAME + " file.", e);
+            }
+        }
     }
 }
 
