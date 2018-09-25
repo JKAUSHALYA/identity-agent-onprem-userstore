@@ -1,1 +1,2 @@
-serverUrl: "wss://identitybroker.cloudstaging.wso2.com:8443/server"
+serverUrl: "wss://identity-broker.cloud.wso2.com:8443/server"
+tenantDomain: "wso2cloudtenantdomain"

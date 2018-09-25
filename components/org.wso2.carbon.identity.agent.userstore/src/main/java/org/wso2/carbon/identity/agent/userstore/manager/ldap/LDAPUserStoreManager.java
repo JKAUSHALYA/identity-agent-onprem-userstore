@@ -88,6 +88,13 @@ public class LDAPUserStoreManager implements UserStoreManager {
     private void checkRequiredUserStoreConfigurations() throws UserStoreException {
 
         log.debug("Checking LDAP configurations ");
+
+        String domainName = userStoreProperties.get(LDAPConstants.DOMAIN_NAME);
+        if (domainName == null || domainName.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required DomainName property is not set at the LDAP configurations");
+        }
+
         String connectionURL = userStoreProperties.get(LDAPConstants.CONNECTION_URL);
 
         if (connectionURL == null || connectionURL.trim().length() == 0) {
@@ -1997,5 +2004,9 @@ public class LDAPUserStoreManager implements UserStoreManager {
             throw new UserStoreException(errorMessage, e);
         }
         return isUserInRole;
+    }
+
+    public String getUserStoreDomain() {
+        return userStoreProperties.get(LDAPConstants.DOMAIN_NAME);
     }
 }

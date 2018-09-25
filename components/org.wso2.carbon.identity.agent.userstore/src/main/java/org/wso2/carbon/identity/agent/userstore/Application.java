@@ -30,6 +30,7 @@ import org.wso2.msf4j.MicroservicesRunner;
 import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Map;
 import javax.net.ssl.SSLException;
 
 /**
@@ -60,21 +61,31 @@ public class Application {
             System.exit(0);
         }
         new SecretManagerInitializer().init();
+
+        Map<String, UserStoreManager> userStoreManagers = null;
         try {
-            UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager();
-            LOGGER.info("Verifying user store.....");
-            boolean connectionStatus = userStoreManager.getConnectionStatus();
-            if (!connectionStatus) {
-                LOGGER.error("User store verification failed. Please check the user store configurations in file conf/"
-                        + UserAgentConstants.USERSTORE_CONFIG_FILE);
-                System.exit(0);
-            }
-            LOGGER.info("User store verification success.");
+            userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
         } catch (UserStoreException e) {
-            LOGGER.error("User store verification failed. Please check the user store configurations in file conf/"
-                    + UserAgentConstants.USERSTORE_CONFIG_FILE, e);
+            LOGGER.error("Error occurred while getting the User Stores." , e);
             System.exit(0);
         }
+
+        LOGGER.info("Verifying user stores...");
+        for (UserStoreManager userStoreManager : userStoreManagers.values()) {
+            try {
+                boolean connectionStatus = userStoreManager.getConnectionStatus();
+                if (!connectionStatus) {
+                    LOGGER.error("User store verification failed for Domain : " + userStoreManager.getUserStoreDomain()
+                            + ". Please check whether the user store configurations are correct.");
+                    System.exit(0);
+                }
+            } catch (UserStoreException e) {
+                LOGGER.error("User store verification failed for Domain : " + userStoreManager.getUserStoreDomain() +
+                        ". Please check whether the user store configurations are correct.");
+                System.exit(0);
+            }
+        }
+        LOGGER.info("User store verification success.");
 
         String hostname = InetAddress.getLocalHost().getHostName();
         WebSocketClient webSocketClient = new WebSocketClient(

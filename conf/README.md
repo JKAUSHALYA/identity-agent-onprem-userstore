@@ -19,7 +19,7 @@ WSO2 On-premise Outbound User Store Agent is a lightweight MSF4J (WSO2 Microserv
 
 ## Installation and Running
 1. Extract the downloaded zip file
-2. Configure the userstore-mgt.xml file with the values relevant to your on premise user store.
+2. Configure the userstores/userstore-mgt.xml file with the values relevant to your on premise user store.
 3. Run the wso2agent.sh file.
 4. When agent start enter installation token created while configuring directory.
 
@@ -29,6 +29,7 @@ WSO2 On-premise Outbound User Store Agent is a lightweight MSF4J (WSO2 Microserv
         ├── lib
         ├── conf  
         │   ├── security
+            ├── userstores
         
         
      - lib
@@ -40,6 +41,8 @@ WSO2 On-premise Outbound User Store Agent is a lightweight MSF4J (WSO2 Microserv
           
           - security
             Contains the keystore file and configuration files related to security.
+          - userstores
+            Contains the userstore configuration file(s)            
             
 ### Securing sensitive information in configuration files.
 There are sensitive information such as passwords in the configuration. You can secure them by using secure vault. 

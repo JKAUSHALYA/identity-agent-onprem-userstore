@@ -16,7 +16,12 @@
 
 package org.wso2.carbon.identity.agent.userstore.util;
 
+import org.wso2.carbon.identity.agent.userstore.config.AgentConfigUtil;
 import org.wso2.carbon.identity.agent.userstore.constant.CommonConstants;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Contains Functionalities common to all types of UserStoreManagers.
@@ -40,5 +45,35 @@ public class UserStoreUtils {
             combinedName = userName;
         }
         return combinedName;
+    }
+
+    public static String getUserStoreAwareUsername(String username) {
+        String tenantDomain = AgentConfigUtil.build().getTenantDomain();
+        if (username.contains("@") &&
+                tenantDomain.equals(username.substring(username.indexOf("@") + 1))) {
+            username = username.substring(0, username.indexOf(tenantDomain) - 1);
+        }
+        return username;
+    }
+
+    /**
+     * Combines two String Arrays eliminating duplicates
+     * @param arr1 Array 1
+     * @param arr2 Array 2
+     * @return combined array
+     */
+    public static String[] combineArrays(String[] arr1, String[] arr2) {
+        if (arr1 == null || arr1.length == 0) {
+            return arr2;
+        }
+        if (arr2 == null || arr2.length == 0) {
+            return arr1;
+        }
+
+        Set<String> stringSet = new HashSet<>();
+        stringSet.addAll(Arrays.asList(arr1));
+        stringSet.addAll(Arrays.asList(arr2));
+
+        return stringSet.toArray(new String[0]);
     }
 }

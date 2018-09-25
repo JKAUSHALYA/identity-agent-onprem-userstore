@@ -28,30 +28,24 @@ public class UserStoreConfiguration {
 
     private static Logger log = LoggerFactory.getLogger(UserStoreConfiguration.class);
     private Map<String, String> userStoreProperties;
-    private static UserStoreConfiguration instance = new UserStoreConfiguration();
 
-    private UserStoreConfiguration() {
+    public UserStoreConfiguration(String userStoreConfigPath) {
         try {
-            init();
+            init(userStoreConfigPath);
         } catch (UserStoreException e) {
             log.error("Error in configuring the UserStoreManager: " + e.getMessage());
         }
     }
 
     /**
-     *  Initializes the User Store properties.
+     * Initializes the User Store properties.
+     * @param userStoreConfigPath Path to the user store configuration file
      */
-    private void init() throws UserStoreException {
+    private void init(String userStoreConfigPath) throws UserStoreException {
         UserStoreConfigurationXMLProcessor userStoreConfigurationXMLProcessor
                 = new UserStoreConfigurationXMLProcessor();
-        userStoreProperties = userStoreConfigurationXMLProcessor.buildUserStoreConfigurationFromFile();
-    }
-
-    /**
-     * @return Instance of UserStoreConfiguration with properties initialized.
-     */
-    public static UserStoreConfiguration getConfiguration() {
-        return instance;
+        userStoreProperties = userStoreConfigurationXMLProcessor.
+                buildUserStoreConfigurationFromFile(userStoreConfigPath);
     }
 
     /**
