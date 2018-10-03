@@ -29,7 +29,7 @@
 
     <groupId>org.wso2.carbon.identity.agent.onprem.userstore</groupId>
     <artifactId>identity-agent-onprem-userstore</artifactId>
-    <version>4.0.6</version>
+    <version>4.0.7-SNAPSHOT</version>
     <modules>
         <module>components/org.wso2.carbon.identity.agent.outbound.server</module>
         <module>components/org.wso2.carbon.identity.agent.userstore</module>
@@ -44,7 +44,7 @@
         <url>https://github.com/wso2-extensions/identity-agent-onprem-userstore</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-agent-onprem-userstore.git</developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-agent-onprem-userstore.git</connection>
-        <tag>v4.0.6</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencyManagement>
