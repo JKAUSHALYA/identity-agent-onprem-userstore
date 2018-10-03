@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.agent.userstore.manager.common.UserStoreManagerB
 import org.wso2.carbon.identity.agent.userstore.resource.StatusResource;
 import org.wso2.carbon.identity.agent.userstore.security.AccessTokenHandler;
 import org.wso2.carbon.identity.agent.userstore.security.SecretManagerInitializer;
+import org.wso2.carbon.identity.agent.userstore.util.ApplicationUtils;
 import org.wso2.msf4j.MicroservicesRunner;
 
 import java.net.InetAddress;
@@ -55,6 +56,7 @@ public class Application {
      */
     private void startAgent() throws UnknownHostException {
 
+        ApplicationUtils.writePID();
         String accessToken = new AccessTokenHandler().getAccessToken();
         if (StringUtils.isEmpty(accessToken)) {
             LOGGER.error("Please enter valid access token.");
