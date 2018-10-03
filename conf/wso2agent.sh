@@ -153,6 +153,24 @@ if [ "$CMD" = "--debug" ]; then
   CMD="RUN"
   JAVA_OPTS="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=$PORT"
   echo "Please start the remote debugging client to continue..."
+elif [ "$CMD" = "start" ]; then
+  if [ -e "$CARBON_HOME/wso2agent.pid" ]; then
+    PID=`cat "$CARBON_HOME"/wso2agent.pid`
+    if  ps -p $PID > /dev/null ; then
+      echo "Process is already running"
+      exit 0
+    fi
+  fi
+  if [ ! -f "$CARBON_HOME/accesstoken" ]; then
+      echo "Enter installation token :"
+      stty -echo
+      read token
+      stty echo
+      printf "%s" "$token" > accesstoken
+  fi
+  # using nohup sh to avoid erros in solaris OS.TODO
+  nohup sh "$CARBON_HOME"/wso2agent.sh $args > /dev/null 2>&1 &
+  exit 0
 elif [ "$CMD" = "stop" ]; then
   kill -term `cat "$CARBON_HOME"/wso2agent.pid`
   exit 0
