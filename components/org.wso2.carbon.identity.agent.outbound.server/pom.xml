@@ -26,6 +26,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>org.wso2.carbon.identity.agent.outbound.server</artifactId>
+    <name>WSO2 Carbon - On Premise Userstore Agent</name>
+    <url>http://www.wso2.com</url>
 
     <dependencies>
 
@@ -55,9 +57,6 @@
         </dependency>
 
     </dependencies>
-
-
-    <name>Sample: WebSocket Chat Application (Fatjar Mode)</name>
 
     <properties>
         <microservice.mainClass>org.wso2.carbon.identity.agent.outbound.server.Application</microservice.mainClass>
