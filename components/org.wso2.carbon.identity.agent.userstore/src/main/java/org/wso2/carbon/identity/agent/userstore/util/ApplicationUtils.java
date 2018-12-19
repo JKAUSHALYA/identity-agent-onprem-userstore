@@ -44,10 +44,10 @@ public class ApplicationUtils {
     public static void writePID() {
 
         String[] cmd = {"bash", "-c", "echo $PPID"};
-        Process p;
+        Process process;
         String pid = "";
         try {
-            p = Runtime.getRuntime().exec(cmd);
+            process = Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
             //Ignored. We might be invoking this on a Window platform. Therefore if an error occurs
             //we simply ignore the error.
@@ -55,7 +55,7 @@ public class ApplicationUtils {
         }
 
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             StringBuilder builder = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -77,4 +77,3 @@ public class ApplicationUtils {
         }
     }
 }
-
