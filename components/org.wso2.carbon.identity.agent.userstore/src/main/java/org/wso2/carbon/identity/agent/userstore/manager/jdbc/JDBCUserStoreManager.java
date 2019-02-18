@@ -514,18 +514,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param userName     Username of the user whose role list is updated.
-     * @param deletedRoles List of names of roles that the user is removed from.
-     * @param newRoles     List of names of new roles that the user is added to.
-     * @throws UserStoreException If an error occurs while updting the role list.
-     */
-    @Override
-    public void doUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles)
-            throws UserStoreException {
-    // Not needed to implement
-    }
-
-    /**
      * This method retrieves the user list corresponding to a given role
      * @param roleName
      * @param maxItemLimit
@@ -581,6 +569,18 @@ public class JDBCUserStoreManager implements UserStoreManager {
             closeAllConnections(dbConnection, resultSet, prepStmt);
         }
         return names;
+    }
+
+    /**
+     * @param userName     Username of the user whose role list is updated.
+     * @param deletedRoles List of names of roles that the user is removed from.
+     * @param newRoles     List of names of new roles that the user is added to.
+     * @throws UserStoreException If an error occurs while updting the role list.
+     */
+    @Override
+    public void doUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles)
+            throws UserStoreException {
+    // Not needed to implement
     }
 
     /**
