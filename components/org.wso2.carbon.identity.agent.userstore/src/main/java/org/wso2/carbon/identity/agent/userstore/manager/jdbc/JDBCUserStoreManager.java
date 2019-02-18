@@ -30,7 +30,7 @@ import javax.sql.DataSource;
  */
 public class JDBCUserStoreManager implements UserStoreManager {
     private static Log log = LogFactory.getLog(JDBCUserStoreManager.class);
-    protected DataSource jdbcds = null;
+    private static volatile DataSource jdbcds = null;
     private Map<String, String> userStoreProperties = null;
 
     public JDBCUserStoreManager() {
@@ -178,8 +178,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
 
-        if (maxItemLimit == 0) {
-            return new String[0];
+        if (maxItemLimit <= 0) {
+            return users;
         }
 
         try {
@@ -248,7 +248,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
 
-        if (maxItemLimit == 0) {
+        if (maxItemLimit <= 0) {
             return roles;
         }
 
@@ -378,7 +378,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         boolean isExisting = false;
-        int value = -1;
         Connection dbConnection = null;
 
         String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_IS_USER_EXISTING);
@@ -391,9 +390,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
             prepStmt.setString(1, username);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                value = resultSet.getInt(1);
-            }
-            if (value > -1) {
                 isExisting = true;
             }
         } catch (SQLException e) {
@@ -462,7 +458,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         boolean isExisting = false;
-        int value = -1;
         Connection dbConnection = null;
 
         String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_IS_ROLE_EXISTING);
@@ -475,9 +470,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
             prepStmt.setString(1, roleName);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
-                value = resultSet.getInt(1);
-            }
-            if (value > -1) {
                 isExisting = true;
             }
         } catch (SQLException e) {
@@ -717,7 +709,11 @@ public class JDBCUserStoreManager implements UserStoreManager {
         if (log.isDebugEnabled()) {
             log.debug("Getting the JDBC database connection");
         }
-        Connection dbConnection = getJDBCDataSource().getConnection();
+
+        if (jdbcds == null) {
+            initUserStoreSpecificDataSource(this.userStoreProperties);
+        }
+        Connection dbConnection = jdbcds.getConnection();
         if (dbConnection == null) {
             String message = "The database connection is empty";
             log.error(message);
@@ -727,31 +723,25 @@ public class JDBCUserStoreManager implements UserStoreManager {
         return dbConnection;
     }
 
-    // Loading JDBC data store on demand.
-    private DataSource getJDBCDataSource() throws SQLException, UserStoreException {
-        if (jdbcds == null) {
-            jdbcds = loadUserStoreSpecificDataSource(this.userStoreProperties);
-        }
-        return jdbcds;
-    }
-
     /**
      * Load user store properties from config and create datasource.
      *
      * @return datasource
      */
-    private static DataSource loadUserStoreSpecificDataSource(Map<String, String> userStoreProperties) {
+    private static void initUserStoreSpecificDataSource(Map<String, String> userStoreProperties) {
         if (log.isDebugEnabled()) {
             log.debug("Loading the datasource properties");
         }
-        PoolProperties poolProperties = new PoolProperties();
-        poolProperties.setDriverClassName(userStoreProperties.get(JDBCUserstoreConstants.DRIVER_NAME));
-        poolProperties.setUrl(userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL));
-        poolProperties.setUsername(userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME));
-        poolProperties.setPassword(userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD));
-        poolProperties.setTestOnBorrow(false);
-        poolProperties.setValidationQuery(userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY));
-        return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+        if (jdbcds == null) {
+            PoolProperties poolProperties = new PoolProperties();
+            poolProperties.setDriverClassName(userStoreProperties.get(JDBCUserstoreConstants.DRIVER_NAME));
+            poolProperties.setUrl(userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL));
+            poolProperties.setUsername(userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME));
+            poolProperties.setPassword(userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD));
+            poolProperties.setTestOnBorrow(false);
+            poolProperties.setValidationQuery(userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY));
+            jdbcds = new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+        }
     }
 
     /**
