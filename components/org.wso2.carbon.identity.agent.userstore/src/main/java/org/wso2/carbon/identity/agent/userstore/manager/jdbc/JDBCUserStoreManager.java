@@ -64,10 +64,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         Map<String, String> values = new HashMap<>();
         try {
             dbConnection = getDBConnection();
-
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ATTRIBUTES);
 
             if (log.isDebugEnabled()) {
@@ -89,7 +85,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         } catch (SQLException e) {
             String message = "Error occurred while retrieving user attribute info.";
             log.error(message, e);
-            throw new UserStoreException("Error retrieving user claims");
+            throw new UserStoreException(message, e);
         } finally {
             closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -125,9 +121,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         boolean isAuthed = false;
         try {
             dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.SELECT_USER);
 
             if (log.isDebugEnabled()) {
@@ -200,11 +193,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
             List<String> userList = new LinkedList<String>();
             dbConnection = getDBConnection();
-
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
-
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_FILTER);
             if (log.isDebugEnabled()) {
                 log.debug("SQL statement = " + sqlStmt + ", filter = " + filter
@@ -278,10 +266,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
             dbConnection = getDBConnection();
 
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
-
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_ROLE_LIST);
             if (log.isDebugEnabled()) {
                 log.debug("SQL statement = " + sqlStmt + ", filter = " + filter
@@ -338,9 +322,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
         try {
             dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ROLE);
             if (log.isDebugEnabled()) {
                 log.debug("SQL statement = " + sqlStmt + ", username = " + username);
@@ -406,9 +387,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         }
         try {
             dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, username);
             resultSet = prepStmt.executeQuery();
@@ -421,7 +399,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         } catch (SQLException e) {
             String message = "An error occurred while checking the user existence in the database";
             log.error(message, e);
-            throw new UserStoreException(message);
+            throw new UserStoreException(message, e);
         } finally {
             closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -493,9 +471,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         }
         try {
             dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, roleName);
             resultSet = prepStmt.executeQuery();
@@ -508,7 +483,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         } catch (SQLException e) {
             String message = "An error occurred while checking the role existence in the database";
             log.error(message, e);
-            throw new UserStoreException(message);
+            throw new UserStoreException(message, e);
         } finally {
             closeAllConnections(dbConnection, resultSet, prepStmt);
         }
@@ -542,9 +517,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         try {
             List<String> userList = new ArrayList<String>();
             dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
-            }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             if (roleName != null) {
                 prepStmt.setString(1, roleName);
@@ -731,7 +703,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         } catch (SQLException e) {
             String message = "An error occured while connecting to the database";
             log.error(message, e);
-            throw new UserStoreException("Error in conecting!");
+            throw new UserStoreException(message);
         }
 
         return true;
@@ -746,6 +718,11 @@ public class JDBCUserStoreManager implements UserStoreManager {
             log.debug("Getting the JDBC database connection");
         }
         Connection dbConnection = getJDBCDataSource().getConnection();
+        if (dbConnection == null) {
+            String message = "The database connection is empty";
+            log.error(message);
+            throw new UserStoreException(message);
+        }
         dbConnection.setAutoCommit(false);
         return dbConnection;
     }
