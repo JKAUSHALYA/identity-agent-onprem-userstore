@@ -45,111 +45,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * Checks whether all the mandatory properties of user store are set.
-     * @throws UserStoreException If any of the mandatory properties are not set in the userstore-mgt.xml.
-     */
-    private void checkRequiredUserStoreConfigurations() throws UserStoreException {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Checking JDBC configurations");
-        }
-
-        String domainName = userStoreProperties.get(LDAPConstants.DOMAIN_NAME);
-        if (domainName == null || domainName.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required DomainName property is not set in the JDBC configurations");
-        }
-
-        String connectionURL = userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL);
-
-        if (connectionURL == null || connectionURL.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required ConnectionURL property is not set in the JDBC configurations");
-        }
-        String jdbcUsername = userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME);
-        if (jdbcUsername == null || jdbcUsername.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required JDBC username property is not set in the JDBC configurations");
-        }
-        String jdbcPassword =
-                userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD);
-        if (jdbcPassword == null || jdbcPassword.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required JDBC password property is not set in the JDBC configurations");
-        }
-
-        String sqlValidationQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY);
-        if (sqlValidationQuery == null || sqlValidationQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required SQL validation query is not set in the JDBC configurations");
-        }
-
-        String selectUserQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.SELECT_USER);
-        if (selectUserQuery == null || selectUserQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required select user SQL query is not set in the JDBC configurations");
-        }
-
-        String getUserFilterSQL =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_FILTER);
-        if (getUserFilterSQL == null || getUserFilterSQL.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required get user filter SQL query is not set in the JDBC configurations");
-        }
-
-        String getRoleListQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_ROLE_LIST);
-        if (getRoleListQuery == null || getRoleListQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required get role list SQL query is not set in the JDBC configurations");
-        }
-
-        String getUserRoleQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ROLE);
-        if (getUserRoleQuery == null || getUserRoleQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required get users' role list SQL query is not set in the JDBC configurations");
-        }
-
-        String isUserExistingQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_IS_USER_EXISTING);
-        if (isUserExistingQuery == null || isUserExistingQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    " Required is user exists SQL query is not set in the JDBC configurations");
-        }
-
-        String usernameUniqueSQL =
-                userStoreProperties.get(JDBCUserstoreConstants.USER_NAME_UNIQUE);
-        if (usernameUniqueSQL == null || usernameUniqueSQL.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required is username unique SQL query is not set in the JDBC configurations");
-        }
-
-        String usersInRoleQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_USERS_IN_ROLE);
-        if (usersInRoleQuery == null || usersInRoleQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required get users in role SQL query is not set in the JDBC configurations");
-        }
-
-        String isRoleExistingQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_IS_ROLE_EXISTING);
-        if (isRoleExistingQuery == null || isRoleExistingQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required is role existing SQL query is not set in the JDBC configurations");
-        }
-
-        String getUserAttributesQuery =
-                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ATTRIBUTES);
-        if (usersInRoleQuery == null || usersInRoleQuery.trim().length() == 0) {
-            throw new UserStoreException(
-                    "Required get user attributes SQL query is not set in the JDBC configurations");
-        }
-    }
-
-    /**
      * This method retrieves the attributes corresponding to the claim values from the database.
      * @param userName  Username of the user
      * @param claimUris Array of required attributes' names
@@ -485,24 +380,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         return roleNames;
     }
 
-    /**
-     * @return true if the connection to the userstore is healthy. false otherwise.
-     */
-    @Override
-    public boolean getConnectionStatus() throws UserStoreException {
-        if (log.isDebugEnabled()) {
-            log.debug("Getting the connection purpose");
-        }
-        try {
-            getDBConnection();
-        } catch (SQLException e) {
-            String message = "An error occured while connecting to the database";
-            log.error(message, e);
-            throw new UserStoreException("Error in conecting!");
-        }
-
-        return true;
-    }
 
     /**
      * Method checks if the user is an existing user
@@ -649,6 +526,64 @@ public class JDBCUserStoreManager implements UserStoreManager {
     }
 
     /**
+     * This method retrieves the user list corresponding to a given role
+     * @param roleName
+     * @param maxItemLimit
+     * @return
+     * @throws UserStoreException
+     */
+    public String[] getUserListOfJDBCRole(String roleName, int maxItemLimit) throws UserStoreException {
+        if (log.isDebugEnabled()) {
+            log.debug("Getting the list of users in the role " + roleName);
+        }
+        String[] names = new String[0];
+        PreparedStatement prepStmt = null;
+        ResultSet resultSet = null;
+        Connection dbConnection = null;
+        String sqlStmt = null;
+
+        sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USERS_IN_ROLE);
+        if (log.isDebugEnabled()) {
+            log.debug(sqlStmt);
+        }
+
+        try {
+            List<String> userList = new ArrayList<String>();
+            dbConnection = getDBConnection();
+            if (dbConnection == null) {
+                throw new UserStoreException("The database connection is empty");
+            }
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            if (roleName != null) {
+                prepStmt.setString(1, roleName);
+            } else {
+                String message = "The role name has not been specified in the method getUserListOfJDBCRole";
+                log.error(message);
+                throw new UserStoreException(message);
+            }
+            if (maxItemLimit > 0) {
+                prepStmt.setMaxRows(maxItemLimit);
+            }
+            resultSet = prepStmt.executeQuery();
+
+            while (resultSet.next()) {
+                String name = resultSet.getString(1);
+                userList.add(name);
+            }
+            if (userList.size() > 0) {
+                names = userList.toArray(new String[userList.size()]);
+            }
+        } catch (SQLException e) {
+            String message = "Error occurred while retrieving the user list for a given role.";
+            log.error(message, e);
+            throw new UserStoreException(message, e);
+        } finally {
+            closeAllConnections(dbConnection, resultSet, prepStmt);
+        }
+        return names;
+    }
+
+    /**
      * @param userStoreProperties Properties read from the userstore-mgt.xml file.
      * @throws UserStoreException If a required attribute of the UserStoreManager is missing.
      */
@@ -671,6 +606,131 @@ public class JDBCUserStoreManager implements UserStoreManager {
             log.debug("Getting the userstore properties");
         }
         return userStoreProperties.get(JDBCUserstoreConstants.DOMAIN_NAME);
+    }
+
+
+    /**
+     * Checks whether all the mandatory properties of user store are set.
+     * @throws UserStoreException If any of the mandatory properties are not set in the userstore-mgt.xml.
+     */
+    private void checkRequiredUserStoreConfigurations() throws UserStoreException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Checking JDBC configurations");
+        }
+
+        String domainName = userStoreProperties.get(LDAPConstants.DOMAIN_NAME);
+        if (domainName == null || domainName.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required DomainName property is not set in the JDBC configurations");
+        }
+
+        String connectionURL = userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL);
+
+        if (connectionURL == null || connectionURL.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required ConnectionURL property is not set in the JDBC configurations");
+        }
+        String jdbcUsername = userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME);
+        if (jdbcUsername == null || jdbcUsername.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required JDBC username property is not set in the JDBC configurations");
+        }
+        String jdbcPassword =
+                userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD);
+        if (jdbcPassword == null || jdbcPassword.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required JDBC password property is not set in the JDBC configurations");
+        }
+
+        String sqlValidationQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY);
+        if (sqlValidationQuery == null || sqlValidationQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required SQL validation query is not set in the JDBC configurations");
+        }
+
+        String selectUserQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.SELECT_USER);
+        if (selectUserQuery == null || selectUserQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required select user SQL query is not set in the JDBC configurations");
+        }
+
+        String getUserFilterSQL =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_FILTER);
+        if (getUserFilterSQL == null || getUserFilterSQL.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required get user filter SQL query is not set in the JDBC configurations");
+        }
+
+        String getRoleListQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_ROLE_LIST);
+        if (getRoleListQuery == null || getRoleListQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required get role list SQL query is not set in the JDBC configurations");
+        }
+
+        String getUserRoleQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ROLE);
+        if (getUserRoleQuery == null || getUserRoleQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required get users' role list SQL query is not set in the JDBC configurations");
+        }
+
+        String isUserExistingQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_IS_USER_EXISTING);
+        if (isUserExistingQuery == null || isUserExistingQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    " Required is user exists SQL query is not set in the JDBC configurations");
+        }
+
+        String usernameUniqueSQL =
+                userStoreProperties.get(JDBCUserstoreConstants.USER_NAME_UNIQUE);
+        if (usernameUniqueSQL == null || usernameUniqueSQL.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required is username unique SQL query is not set in the JDBC configurations");
+        }
+
+        String usersInRoleQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_USERS_IN_ROLE);
+        if (usersInRoleQuery == null || usersInRoleQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required get users in role SQL query is not set in the JDBC configurations");
+        }
+
+        String isRoleExistingQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_IS_ROLE_EXISTING);
+        if (isRoleExistingQuery == null || isRoleExistingQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required is role existing SQL query is not set in the JDBC configurations");
+        }
+
+        String getUserAttributesQuery =
+                userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ATTRIBUTES);
+        if (usersInRoleQuery == null || usersInRoleQuery.trim().length() == 0) {
+            throw new UserStoreException(
+                    "Required get user attributes SQL query is not set in the JDBC configurations");
+        }
+    }
+
+    /**
+     * @return true if the connection to the userstore is healthy. false otherwise.
+     */
+    @Override
+    public boolean getConnectionStatus() throws UserStoreException {
+        if (log.isDebugEnabled()) {
+            log.debug("Getting the connection purpose");
+        }
+        try {
+            getDBConnection();
+        } catch (SQLException e) {
+            String message = "An error occured while connecting to the database";
+            log.error(message, e);
+            throw new UserStoreException("Error in conecting!");
+        }
+
+        return true;
     }
 
     /**
@@ -711,40 +771,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         poolProperties.setTestOnBorrow(false);
         poolProperties.setValidationQuery(userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY));
         return new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
-    }
-
-    /**
-     * This constructs the password using the configured salt value(if any) and encryption algorithm.
-     * If a plain text password has been used then it is returned as it is.
-     * @param password
-     * @param saltValue
-     * @return
-     * @throws UserStoreException
-     */
-    protected String preparePassword(String password, String saltValue) throws UserStoreException {
-        try {
-            String digestInput = password;
-            if (saltValue != null) {
-                digestInput = password + saltValue;
-            }
-            String digsestFunction = userStoreProperties.get(JDBCUserstoreConstants.DIGEST_FUNCTION);
-            if (digsestFunction != null) {
-
-                if (digsestFunction
-                        .equals(JDBCUserstoreConstants.PASSWORD_HASH_METHOD_PLAIN_TEXT)) {
-                    return password;
-                }
-
-                MessageDigest dgst = MessageDigest.getInstance(digsestFunction);
-                byte[] byteValue = dgst.digest(digestInput.getBytes());
-                password = Base64.encode(byteValue);
-            }
-            return password;
-        } catch (NoSuchAlgorithmException e) {
-            String message = "Error occurred while preparing the password.";
-            log.error(message, e);
-            throw new UserStoreException(message, e);
-        }
     }
 
     /**
@@ -848,61 +874,36 @@ public class JDBCUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * This method retrieves the user list corresponding to a given role
-     * @param roleName
-     * @param maxItemLimit
+     * This constructs the password using the configured salt value(if any) and encryption algorithm.
+     * If a plain text password has been used then it is returned as it is.
+     * @param password
+     * @param saltValue
      * @return
      * @throws UserStoreException
      */
-    public String[] getUserListOfJDBCRole(String roleName, int maxItemLimit) throws UserStoreException {
-        if (log.isDebugEnabled()) {
-            log.debug("Getting the list of users in the role " + roleName);
-        }
-        String[] names = new String[0];
-        PreparedStatement prepStmt = null;
-        ResultSet resultSet = null;
-        Connection dbConnection = null;
-        String sqlStmt = null;
-
-        sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USERS_IN_ROLE);
-        if (log.isDebugEnabled()) {
-            log.debug(sqlStmt);
-        }
-
+    protected String preparePassword(String password, String saltValue) throws UserStoreException {
         try {
-            List<String> userList = new ArrayList<String>();
-            dbConnection = getDBConnection();
-            if (dbConnection == null) {
-                throw new UserStoreException("The database connection is empty");
+            String digestInput = password;
+            if (saltValue != null) {
+                digestInput = password + saltValue;
             }
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
-            if (roleName != null) {
-                prepStmt.setString(1, roleName);
-            } else {
-                String message = "The role name has not been specified in the method getUserListOfJDBCRole";
-                log.error(message);
-                throw new UserStoreException(message);
-            }
-            if (maxItemLimit > 0) {
-                prepStmt.setMaxRows(maxItemLimit);
-            }
-            resultSet = prepStmt.executeQuery();
+            String digsestFunction = userStoreProperties.get(JDBCUserstoreConstants.DIGEST_FUNCTION);
+            if (digsestFunction != null) {
 
-            while (resultSet.next()) {
-                String name = resultSet.getString(1);
-                userList.add(name);
+                if (digsestFunction
+                        .equals(JDBCUserstoreConstants.PASSWORD_HASH_METHOD_PLAIN_TEXT)) {
+                    return password;
+                }
+
+                MessageDigest dgst = MessageDigest.getInstance(digsestFunction);
+                byte[] byteValue = dgst.digest(digestInput.getBytes());
+                password = Base64.encode(byteValue);
             }
-            if (userList.size() > 0) {
-                names = userList.toArray(new String[userList.size()]);
-            }
-        } catch (SQLException e) {
-            String message = "Error occurred while retrieving the user list for a given role.";
+            return password;
+        } catch (NoSuchAlgorithmException e) {
+            String message = "Error occurred while preparing the password.";
             log.error(message, e);
             throw new UserStoreException(message, e);
-        } finally {
-            closeAllConnections(dbConnection, resultSet, prepStmt);
         }
-        return names;
     }
-
 }
