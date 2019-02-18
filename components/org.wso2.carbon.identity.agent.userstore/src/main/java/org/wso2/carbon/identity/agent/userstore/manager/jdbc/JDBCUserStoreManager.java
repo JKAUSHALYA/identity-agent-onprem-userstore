@@ -729,18 +729,20 @@ public class JDBCUserStoreManager implements UserStoreManager {
      * @return datasource
      */
     private static void initUserStoreSpecificDataSource(Map<String, String> userStoreProperties) {
-        if (log.isDebugEnabled()) {
-            log.debug("Loading the datasource properties");
-        }
-        if (jdbcds == null) {
-            PoolProperties poolProperties = new PoolProperties();
-            poolProperties.setDriverClassName(userStoreProperties.get(JDBCUserstoreConstants.DRIVER_NAME));
-            poolProperties.setUrl(userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL));
-            poolProperties.setUsername(userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME));
-            poolProperties.setPassword(userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD));
-            poolProperties.setTestOnBorrow(false);
-            poolProperties.setValidationQuery(userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY));
-            jdbcds = new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+        synchronized (JDBCUserStoreManager.class) {
+            if (log.isDebugEnabled()) {
+                log.debug("Loading the datasource properties");
+            }
+            if (jdbcds == null) {
+                PoolProperties poolProperties = new PoolProperties();
+                poolProperties.setDriverClassName(userStoreProperties.get(JDBCUserstoreConstants.DRIVER_NAME));
+                poolProperties.setUrl(userStoreProperties.get(JDBCUserstoreConstants.CONNECTION_URL));
+                poolProperties.setUsername(userStoreProperties.get(JDBCUserstoreConstants.JDBC_USERNAME));
+                poolProperties.setPassword(userStoreProperties.get(JDBCUserstoreConstants.JDBC_PASSWORD));
+                poolProperties.setTestOnBorrow(false);
+                poolProperties.setValidationQuery(userStoreProperties.get(JDBCUserstoreConstants.SQL_VALIDATION_QUERY));
+                jdbcds = new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+            }
         }
     }
 
