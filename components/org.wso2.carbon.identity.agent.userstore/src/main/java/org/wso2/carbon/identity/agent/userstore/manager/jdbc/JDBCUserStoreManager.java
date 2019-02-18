@@ -46,16 +46,16 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
     /**
      * This method retrieves the attributes corresponding to the claim values from the database.
-     * @param userName  Username of the user
+     * @param username  Username of the user
      * @param claimUris Array of required attributes' names
      * @return Map containing the name value pairs of required attributes
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     @Override
-    public Map<String, String> getUserClaimValues(String userName, String[] claimUris) throws UserStoreException {
+    public Map<String, String> getUserClaimValues(String username, String[] claimUris) throws UserStoreException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Getting the user claim values from the database for the user " + userName);
+            log.debug("Getting the user claim values from the database for the user " + username);
         }
         Connection dbConnection = null;
         ResultSet resultSet = null;
@@ -71,11 +71,11 @@ public class JDBCUserStoreManager implements UserStoreManager {
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ATTRIBUTES);
 
             if (log.isDebugEnabled()) {
-                log.debug(sqlStmt);
+                log.debug("SQL statement = " + sqlStmt + ", username = " + username);
             }
 
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, userName);
+            prepStmt.setString(1, username);
             resultSet = prepStmt.executeQuery();
 
             while (resultSet.next()) {
@@ -107,15 +107,15 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
     /**
      * Method is used to authenticate the user against the JDBC on premise userstore.
-     * @param userName   Username of the user
+     * @param username   Username of the user
      * @param credential Password of the user
      * @return true if the users credentials are valid. false otherwise.
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     @Override
-    public boolean doAuthenticate(String userName, Object credential) throws UserStoreException {
+    public boolean doAuthenticate(String username, Object credential) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Starting authenticating the user " + userName + " against the JDBC userstore.");
+            log.debug("Starting authenticating the user " + username + " against the JDBC userstore.");
         }
         Connection dbConnection = null;
         ResultSet resultSet = null;
@@ -131,11 +131,11 @@ public class JDBCUserStoreManager implements UserStoreManager {
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.SELECT_USER);
 
             if (log.isDebugEnabled()) {
-                log.debug(sqlStmt);
+                log.debug("SQL statement = " + sqlStmt + ", username = " + username);
             }
 
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, userName);
+            prepStmt.setString(1, username);
 
             resultSet = prepStmt.executeQuery();
 
@@ -161,7 +161,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("User " + userName + " login attempt. Login success :: " + isAuthed);
+            log.debug("User " + username + " login attempt. Login success :: " + isAuthed);
         }
 
         return isAuthed;
@@ -207,7 +207,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_FILTER);
             if (log.isDebugEnabled()) {
-                log.debug(sqlStmt);
+                log.debug("SQL statement = " + sqlStmt + ", filter = " + filter
+                        + ", max item limit = " + maxItemLimit);
             }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, filter);
@@ -283,7 +284,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
             sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_ROLE_LIST);
             if (log.isDebugEnabled()) {
-                log.debug(sqlStmt);
+                log.debug("SQL statement = " + sqlStmt + ", filter = " + filter
+                        + ", max item limit = " + maxItemLimit);
             }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, filter);
@@ -292,8 +294,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 resultSet = prepStmt.executeQuery();
             } catch (SQLException e) {
                 String message =
-                        "Error while fetching roles from JDBC user store according to filter : " + filter +
-                                " & max item limit : " + maxItemLimit;
+                        "Error while fetching roles from JDBC user store according to filter : " +
+                                filter + " and max item limit =" + maxItemLimit;
                 log.error(message, e);
                 throw new UserStoreException(message, e);
             }
@@ -320,14 +322,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
     /**
      * Method is used to get the roles of a given user
-     * @param userName Username of the user whose role list is required.
+     * @param username Username of the user whose role list is required.
      * @return The array of roles of the given user.
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     @Override
-    public String[] doGetExternalRoleListOfUser(String userName) throws UserStoreException {
+    public String[] doGetExternalRoleListOfUser(String username) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Getting roles of the user " + userName);
+            log.debug("Getting roles of the user " + username);
         }
         String[] roleNames = new String[0];
         PreparedStatement prepStmt = null;
@@ -341,13 +343,13 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USER_ROLE);
             if (log.isDebugEnabled()) {
-                log.debug(sqlStmt);
+                log.debug("SQL statement = " + sqlStmt + ", username = " + username);
             }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            if (userName != null) {
-                prepStmt.setString(1, userName);
+            if (username != null) {
+                prepStmt.setString(1, username);
             } else {
-                String message = "The userName name has not been specified for the doGetExternalRoleListOfUser method";
+                String message = "The username name has not been specified for the doGetExternalRoleListOfUser method";
                 log.error(message);
                 throw new UserStoreException(message);
             }
@@ -373,7 +375,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
                     log.debug("Found role: " + name);
                 }
             } else {
-                log.debug("No external role found for the user: " + userName);
+                log.debug("No external role found for the user: " + username);
             }
         }
 
@@ -383,14 +385,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
     /**
      * Method checks if the user is an existing user
-     * @param userName Username of the user whose existence is to be checked.
+     * @param username Username of the user whose existence is to be checked.
      * @return true if the user existes in userstore. false otherwise.
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     @Override
-    public boolean doCheckExistingUser(String userName) throws UserStoreException {
+    public boolean doCheckExistingUser(String username) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Checking the existence of the user " + userName);
+            log.debug("Checking the existence of the user " + username);
         }
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
@@ -400,7 +402,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
         String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_IS_USER_EXISTING);
         if (log.isDebugEnabled()) {
-            log.debug(sqlStmt);
+            log.debug("SQL statement = " + sqlStmt + ", username = " + username);
         }
         try {
             dbConnection = getDBConnection();
@@ -408,7 +410,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 throw new UserStoreException("The database connection is empty");
             }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
-            prepStmt.setString(1, userName);
+            prepStmt.setString(1, username);
             resultSet = prepStmt.executeQuery();
             if (resultSet.next()) {
                 value = resultSet.getInt(1);
@@ -429,17 +431,17 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
     /**
      * Method checks if the user is in the given role
-     * @param userName Username of the user whose existence in role to be checked.
+     * @param username Username of the user whose existence in role to be checked.
      * @param roleName Name of the Role which the user is checked to be in.
      * @return true if the user is in the role. false otherwise.
      * @throws UserStoreException If an error occurs while retrieving data.
      */
     @Override
-    public boolean doCheckIsUserInRole(String userName, String roleName) throws UserStoreException {
+    public boolean doCheckIsUserInRole(String username, String roleName) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Checking if the user " + userName + " exists in the role " + roleName);
+            log.debug("Checking if the user " + username + " exists in the role " + roleName);
         }
-        String[] roles = doGetExternalRoleListOfUser(userName);
+        String[] roles = doGetExternalRoleListOfUser(username);
         if (roles != null) {
             for (String role : roles) {
                 if (role.equalsIgnoreCase(roleName)) {
@@ -461,7 +463,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
     @Override
     public String[] doGetUserListOfRole(String roleName, int maxItemLimit) throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Getting the list of users with the role " + roleName);
+            log.debug("Getting the list of users with the role " + roleName
+                    + ", max item limit = " + maxItemLimit);
         }
         return getUserListOfJDBCRole(roleName, maxItemLimit);
     }
@@ -486,7 +489,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
         String sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_IS_ROLE_EXISTING);
         if (log.isDebugEnabled()) {
-            log.debug(sqlStmt);
+            log.debug("SQL statement = " + sqlStmt + ", roleName = " + roleName);
         }
         try {
             dbConnection = getDBConnection();
@@ -532,7 +535,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
         sqlStmt = this.userStoreProperties.get(JDBCUserstoreConstants.GET_USERS_IN_ROLE);
         if (log.isDebugEnabled()) {
-            log.debug(sqlStmt);
+            log.debug("SQL statement = " + sqlStmt + ", roleName = " + roleName
+                    + ", max item limit = " + maxItemLimit);
         }
 
         try {
@@ -572,13 +576,13 @@ public class JDBCUserStoreManager implements UserStoreManager {
     }
 
     /**
-     * @param userName     Username of the user whose role list is updated.
+     * @param username     Username of the user whose role list is updated.
      * @param deletedRoles List of names of roles that the user is removed from.
      * @param newRoles     List of names of new roles that the user is added to.
      * @throws UserStoreException If an error occurs while updting the role list.
      */
     @Override
-    public void doUpdateRoleListOfUser(String userName, String[] deletedRoles, String[] newRoles)
+    public void doUpdateRoleListOfUser(String username, String[] deletedRoles, String[] newRoles)
             throws UserStoreException {
     // Not needed to implement
     }
