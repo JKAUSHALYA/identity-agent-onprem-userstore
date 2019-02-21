@@ -690,14 +690,16 @@ public class JDBCUserStoreManager implements UserStoreManager {
         if (log.isDebugEnabled()) {
             log.debug("Getting the connection purpose");
         }
+        Connection dbConnection = null;
         try {
-            getDBConnection();
+            dbConnection = getDBConnection();
         } catch (SQLException e) {
             String message = "An error occured while connecting to the database";
             log.error(message, e);
             throw new UserStoreException(message);
+        } finally {
+            closeAllConnections(dbConnection, null, null);
         }
-
         return true;
     }
 
