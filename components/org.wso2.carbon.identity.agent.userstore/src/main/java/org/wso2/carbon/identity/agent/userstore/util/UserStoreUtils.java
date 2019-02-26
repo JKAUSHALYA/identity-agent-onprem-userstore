@@ -49,7 +49,7 @@ public class UserStoreUtils {
 
     public static String getUserStoreAwareUsername(String username) {
         String tenantDomain = AgentConfigUtil.build().getTenantDomain();
-        if (username.contains("@") &&
+        if (username.contains("@") && tenantDomain != null &&
                 tenantDomain.equals(username.substring(username.indexOf("@") + 1))) {
             username = username.substring(0, username.indexOf(tenantDomain) - 1);
         }
