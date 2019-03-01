@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.user.store.common.UserStoreConstants;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -145,8 +146,17 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
      * @param result user operation result
      */
     private void writeResponse(Channel channel, String correlationId, String result) {
-        channel.writeAndFlush(
+        ChannelFuture channelFuture = channel.writeAndFlush(
                 new TextWebSocketFrame(MessageRequestUtil.getUserResponseJSONMessage(correlationId, result)));
+        channelFuture.addListener(future -> {
+            if (future.isSuccess()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Data with correlationId:" + correlationId + " is flushed to the channel.");
+                }
+            } else {
+                LOGGER.warn("Failed to flush data with correlationId:" + correlationId + " to the channel.");
+            }
+        });
     }
 
     /**
@@ -163,10 +173,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         username = UserStoreUtils.getUserStoreAwareUsername(username);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to authenticate user " + username);
+            LOGGER.debug("Starting to authenticate user " + username + " with correlationId:" +
+                    requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID));
         }
 
         boolean isAuthenticated = false;
+        Date startDate = new Date();
 
         Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
         for (UserStoreManager userStoreManager : userStoreManagers.values()) {
@@ -184,7 +196,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         String authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_FAIL;
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Authentication completed. User: " + username + " result: " + isAuthenticated);
+            LOGGER.debug("Authentication completed in " + (new Date().getTime() - startDate.getTime()) +
+                    "ms. User: " + username + " result: " + isAuthenticated);
         }
         if (isAuthenticated) {
             authenticationResult = UserAgentConstants.UM_OPERATION_AUTHENTICATE_RESULT_SUCCESS;
@@ -242,10 +255,12 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         username = UserStoreUtils.getUserStoreAwareUsername(username);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Starting to get user roles for user: " + username);
+            LOGGER.debug("Starting to get user roles for user: " + username + " with correlationId:" +
+                    requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID));
         }
 
         String[] roles = new String[0];
+        Date startDate = new Date();
 
         Map<String, UserStoreManager> userStoreManagers = UserStoreManagerBuilder.getUserStoreManagers();
         for (UserStoreManager userStoreManager : userStoreManagers.values()) {
@@ -261,7 +276,8 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         jsonObject.put("groups", usernameArray);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("User roles retrieval completed. User: " + username + " roles: " + Arrays.toString(
+            LOGGER.debug("User roles retrieval completed in " + (new Date().getTime() - startDate.getTime()) +
+                    "ms. User: " + username + " roles: " + Arrays.toString(
                     roles));
         }
         writeResponse(channel, (String) requestObj.get(UserStoreConstants.UM_JSON_ELEMENT_REQUEST_DATA_CORRELATION_ID),
