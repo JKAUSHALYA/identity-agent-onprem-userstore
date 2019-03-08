@@ -680,9 +680,8 @@ public class JDBCUserStoreManager implements UserStoreManager {
     @Override
     public boolean getConnectionStatus() throws UserStoreException {
         if (log.isDebugEnabled()) {
-            log.debug("Getting the connection purpose");
+            log.debug("Getting the connection status");
         }
-
         Connection dbConnection = null;
         try {
             dbConnection = getDBConnection();
