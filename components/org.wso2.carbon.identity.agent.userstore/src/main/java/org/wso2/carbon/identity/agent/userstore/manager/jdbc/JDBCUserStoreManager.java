@@ -178,10 +178,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
 
-        if (maxItemLimit <= 0) {
-            return users;
-        }
-
         try {
             if (filter != null && filter.trim().length() != 0) {
                 filter = filter.trim();
@@ -247,10 +243,6 @@ public class JDBCUserStoreManager implements UserStoreManager {
         String sqlStmt = null;
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
-
-        if (maxItemLimit <= 0) {
-            return roles;
-        }
 
         try {
 
@@ -690,6 +682,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
         if (log.isDebugEnabled()) {
             log.debug("Getting the connection purpose");
         }
+
         Connection dbConnection = null;
         try {
             dbConnection = getDBConnection();
