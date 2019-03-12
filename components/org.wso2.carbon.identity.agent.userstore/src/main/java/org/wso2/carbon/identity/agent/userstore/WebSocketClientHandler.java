@@ -186,8 +186,14 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
                 LOGGER.debug("Authenticating user in user store with Domain : "
                         + userStoreManager.getUserStoreDomain());
             }
-            isAuthenticated = userStoreManager.doAuthenticate(username,
-                    requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
+            try {
+                isAuthenticated = userStoreManager.doAuthenticate(username,
+                        requestData.getString(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_USER_PASSWORD));
+            } catch (Exception e) {
+                LOGGER.warn("Failed authentication in user store with domain :"
+                        + userStoreManager.getUserStoreDomain(), e);
+                // continue to next user store
+            }
             if (isAuthenticated) {
                 break;
             }
@@ -422,28 +428,33 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
 
         if (msg instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) msg;
-            throw new IllegalStateException(
-                    "Unexpected FullHttpResponse (getStatus=" + response.status() +
-                            ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
+            String errorMsg = "Unexpected FullHttpResponse (getStatus=" + response.status() +
+                    ", content=" + response.content().toString(CharsetUtil.UTF_8) + ")";
+            LOGGER.error(errorMsg);
+            throw new IllegalStateException(errorMsg);
         }
 
-        WebSocketFrame frame = (WebSocketFrame) msg;
-        if (frame instanceof TextWebSocketFrame) {
-            TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-            JSONObject requestObj = new JSONObject(textFrame.text());
-            textReceived = textFrame.text();
-            processUserOperationRequest(ch, requestObj);
-        } else if (frame instanceof BinaryWebSocketFrame) {
-            BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
-            bufferReceived = binaryFrame.content().nioBuffer();
-            LOGGER.info("WebSocket Client received  binary message: " + bufferReceived.toString());
-        } else if (frame instanceof PongWebSocketFrame) {
-            LOGGER.info("WebSocket Client received pong.");
-            PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
-            bufferReceived = pongFrame.content().nioBuffer();
-        } else if (frame instanceof CloseWebSocketFrame) {
-            LOGGER.info("WebSocket Client received closing.");
-            ch.close();
+        try {
+            WebSocketFrame frame = (WebSocketFrame) msg;
+            if (frame instanceof TextWebSocketFrame) {
+                TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+                JSONObject requestObj = new JSONObject(textFrame.text());
+                textReceived = textFrame.text();
+                processUserOperationRequest(ch, requestObj);
+            } else if (frame instanceof BinaryWebSocketFrame) {
+                BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
+                bufferReceived = binaryFrame.content().nioBuffer();
+                LOGGER.info("WebSocket Client received  binary message: " + bufferReceived.toString());
+            } else if (frame instanceof PongWebSocketFrame) {
+                LOGGER.info("WebSocket Client received pong.");
+                PongWebSocketFrame pongFrame = (PongWebSocketFrame) frame;
+                bufferReceived = pongFrame.content().nioBuffer();
+            } else if (frame instanceof CloseWebSocketFrame) {
+                LOGGER.info("WebSocket Client received closing.");
+                ch.close();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to process the incoming operation request.", e);
         }
     }
 
