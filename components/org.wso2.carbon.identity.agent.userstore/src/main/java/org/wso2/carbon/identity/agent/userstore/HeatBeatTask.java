@@ -16,6 +16,7 @@
 package org.wso2.carbon.identity.agent.userstore;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +43,16 @@ public class HeatBeatTask extends TimerTask {
      * Send ping message to server.
      */
     private void sendPingToServer() {
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Sending ping message to Identity Cloud.");
-        }
         //TODO should send PingWebSocketFrame and it doesn't support at the moment
-        channel.writeAndFlush(new BinaryWebSocketFrame());
+        ChannelFuture channelFuture = channel.writeAndFlush(new BinaryWebSocketFrame());
+        if (LOGGER.isDebugEnabled()) {
+            channelFuture.addListener(future -> {
+                if (future.isSuccess()) {
+                    LOGGER.debug("Successfully pinged to the WSO2 Cloud.");
+                } else {
+                    LOGGER.debug("Failed to ping to the WSO2 Cloud.");
+                }
+            });
+        }
     }
 }
