@@ -1328,7 +1328,7 @@ public class LDAPUserStoreManager implements UserStoreManager {
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         String searchBases = userStoreProperties.get(LDAPConstants.USER_SEARCH_BASE);
-        if (returnedAtts[0].equals(CommonConstants.WILD_CARD_FILTER)) {
+        if (returnedAtts.length > 0 && CommonConstants.WILD_CARD_FILTER.equals(returnedAtts[0])) {
             returnedAtts = null;
         }
         searchCtls.setReturningAttributes(returnedAtts);
