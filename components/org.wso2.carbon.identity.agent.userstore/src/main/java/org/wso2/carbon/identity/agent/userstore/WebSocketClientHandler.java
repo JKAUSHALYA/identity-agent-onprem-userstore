@@ -230,7 +230,10 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         }
 
         String claims = (String) requestData.get(UserAgentConstants.UM_JSON_ELEMENT_REQUEST_DATA_CLAIMS);
-        String[] claimArray = claims.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
+        String[] claimArray = new String[0];
+        if (claims != null  && !claims.isEmpty()) {
+            claimArray = claims.split(CommonConstants.ATTRIBUTE_LIST_SEPERATOR);
+        }
 
         Map<String, String> propertyMap = new HashMap<>();
         UserStoreManager userStoreManager = UserStoreManagerBuilder.getUserStoreManager(username);
