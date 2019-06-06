@@ -60,6 +60,13 @@ public class AgentMgtDao {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error(
+                        "SQL transaction rollback connection error occurred while updating connection client node: "
+                                + node + " server node: " + serverNode + " status: " + status, e1);
+            }
             String errorMessage = "Error occurred while updating connection client node: " + node + " server node: " +
                     serverNode + " status: " + status;
             LOGGER.error(errorMessage, e);
@@ -88,6 +95,12 @@ public class AgentMgtDao {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred while updating connection"
+                        + " status server node: " + serverNode, e1);
+            }
             String errorMessage = "Error occurred while updating connection status server node: " + serverNode;
             LOGGER.error(errorMessage, e);
             result = false;
@@ -119,7 +132,14 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isValid = true;
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred while checking node connection node: "
+                        + node, e1);
+            }
             String errorMessage = "Error occurred while checking node connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -152,7 +172,14 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 serverNode = resultSet.getString(1);
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred while checking server connected for : "
+                        + node, e1);
+            }
             String errorMessage = "Error occurred while checking server connected for : " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -183,7 +210,15 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isExist = true;
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error(
+                        "SQL transaction rollback connection error occurred while checking sconnection node: " + node,
+                        e1);
+            }
             String errorMessage = "Error occurred while checking connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -211,6 +246,12 @@ public class AgentMgtDao {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred whileadding connection information",
+                        e1);
+            }
             String errorMessage = "Error occurred while adding connection information.";
             LOGGER.error(errorMessage, e);
             result = false;
@@ -247,7 +288,14 @@ public class AgentMgtDao {
                 agentConnection.setServerNode(resultSet.getString("UM_SERVER_NODE"));
                 agentConnections.add(agentConnection);
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred while reading agent connection "
+                        + "information tenant: " + tenantDomain + " domain: " + domain + " status: " + status, e1);
+            }
             String errorMessage = "Error occurred while reading agent connection information tenant: " +  tenantDomain +
                     " domain: " + domain + " status: " + status;
             LOGGER.error(errorMessage, e);

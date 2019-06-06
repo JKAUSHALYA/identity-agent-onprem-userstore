@@ -58,7 +58,13 @@ public class TokenMgtDao {
                 token.setStatus(resultSet.getString("UM_STATUS"));
                 return token;
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                LOGGER.error("SQL transaction rollback connection error occurred while validating access token ", e1);
+            }
             String errorMessage = "Error occurred while validating access token";
             LOGGER.error(errorMessage, e);
         } finally {

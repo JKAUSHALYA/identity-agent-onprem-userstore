@@ -82,7 +82,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 }
                 values.put(attributeName, attributeValue);
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while retrieving user "
+                                + "attribute info. ", e1);
+            }
             String message = "Error occurred while retrieving user attribute info.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -145,7 +152,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
                     isAuthed = true;
                 }
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while retrieving user "
+                                + "attribute info. ", e1);
+            }
             String message = "Error occurred while retrieving user authentication info.";
             log.error(message, e);
             throw new UserStoreException("Authentication Failure");
@@ -216,7 +230,13 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 users = userList.toArray(new String[userList.size()]);
             }
             Arrays.sort(users);
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while retrieving users. ", e1);
+            }
             String message = "An error occurred while retrieving users.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -286,7 +306,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 roles = lst.toArray(new String[lst.size()]);
             }
 
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while retrieving role names. ",
+                        e1);
+            }
             String message = "Error occurred while retrieving role names.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -335,7 +362,13 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (roleList.size() > 0) {
                 roleNames = roleList.toArray(new String[roleList.size()]);
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while string values. ", e1);
+            }
             String message = "Error occurred while retrieving string values.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -384,7 +417,15 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (resultSet.next()) {
                 isExisting = true;
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error(
+                        "SQL transaction rollback connection error occurred while checking the user "
+                                + "existence in the database. ", e1);
+            }
             String message = "An error occurred while checking the user existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -464,7 +505,15 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (resultSet.next()) {
                 isExisting = true;
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error(
+                        "SQL transaction rollback connection error occurred while checking the role "
+                                + "existence in the database. ", e1);
+            }
             String message = "An error occurred while checking the role existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -521,7 +570,15 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (userList.size() > 0) {
                 names = userList.toArray(new String[userList.size()]);
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error(
+                        "SQL transaction rollback connection error occurred while retrieving the user "
+                                + "list for a given role. ", e1);
+            }
             String message = "Error occurred while retrieving the user list for a given role.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -685,7 +742,14 @@ public class JDBCUserStoreManager implements UserStoreManager {
         Connection dbConnection = null;
         try {
             dbConnection = getDBConnection();
+            dbConnection.commit();
         } catch (SQLException e) {
+            try {
+                dbConnection.rollback();
+            } catch (SQLException e1) {
+                log.error("SQL transaction rollback connection error occurred while connecting to the"
+                        + " database ", e1);
+            }
             String message = "An error occured while connecting to the database";
             log.error(message, e);
             throw new UserStoreException(message);
