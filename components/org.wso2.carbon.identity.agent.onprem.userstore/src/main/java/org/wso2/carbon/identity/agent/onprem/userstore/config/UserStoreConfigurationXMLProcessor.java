@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.agent.onprem.userstore.exception.XMLException;
 import org.wso2.carbon.identity.agent.onprem.userstore.util.XMLUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -106,12 +108,12 @@ class UserStoreConfigurationXMLProcessor {
             OMElement propElem = (OMElement) ite.next();
             String propName = propElem.getAttributeValue(new QName(
                     XMLConfigurationConstants.ATTR_NAME_PROP_NAME));
-            String propValue = propElem.getText();
-
-            if (secretResolver != null && secretResolver.isInitialized()) {
-                if (secretResolver.isTokenProtected("UserManager.Property." + propName)) {
-                    propValue = secretResolver.resolve("UserManager.Property." + propName);
-                }
+            String propValue;
+            String resolvedPropValue = MiscellaneousUtil.resolve(propElem, secretResolver);
+            if (resolvedPropValue != null && !resolvedPropValue.isEmpty()) {
+                propValue = resolvedPropValue;
+            } else {
+                propValue = propElem.getText();
             }
             map.put(propName.trim(), propValue.trim());
         }
