@@ -84,12 +84,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while retrieving user "
-                                + "attribute info. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving user attribute info.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -154,12 +149,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while retrieving user "
-                                + "attribute info. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving user authentication info.";
             log.error(message, e);
             throw new UserStoreException("Authentication Failure");
@@ -232,11 +222,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             Arrays.sort(users);
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while retrieving users. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while retrieving users.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -308,12 +294,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
 
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while retrieving role names. ",
-                        e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving role names.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -364,11 +345,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while string values. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving string values.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -419,13 +396,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error(
-                        "SQL transaction rollback connection error occurred while checking the user "
-                                + "existence in the database. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while checking the user existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -507,13 +478,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error(
-                        "SQL transaction rollback connection error occurred while checking the role "
-                                + "existence in the database. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while checking the role existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -572,13 +537,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             }
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error(
-                        "SQL transaction rollback connection error occurred while retrieving the user "
-                                + "list for a given role. ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving the user list for a given role.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -744,12 +703,7 @@ public class JDBCUserStoreManager implements UserStoreManager {
             dbConnection = getDBConnection();
             dbConnection.commit();
         } catch (SQLException e) {
-            try {
-                dbConnection.rollback();
-            } catch (SQLException e1) {
-                log.error("SQL transaction rollback connection error occurred while connecting to the"
-                        + " database ", e1);
-            }
+            rollbackTransaction(dbConnection);
             String message = "An error occured while connecting to the database";
             log.error(message, e);
             throw new UserStoreException(message);
@@ -935,6 +889,22 @@ public class JDBCUserStoreManager implements UserStoreManager {
             String message = "Error occurred while preparing the password.";
             log.error(message, e);
             throw new UserStoreException(message, e);
+        }
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection Database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
         }
     }
 }
