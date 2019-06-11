@@ -82,7 +82,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 }
                 values.put(attributeName, attributeValue);
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving user attribute info.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -145,7 +147,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
                     isAuthed = true;
                 }
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving user authentication info.";
             log.error(message, e);
             throw new UserStoreException("Authentication Failure");
@@ -216,7 +220,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
                 users = userList.toArray(new String[userList.size()]);
             }
             Arrays.sort(users);
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while retrieving users.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -285,8 +291,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (lst.size() > 0) {
                 roles = lst.toArray(new String[lst.size()]);
             }
-
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving role names.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -335,7 +342,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (roleList.size() > 0) {
                 roleNames = roleList.toArray(new String[roleList.size()]);
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving string values.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -384,7 +393,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (resultSet.next()) {
                 isExisting = true;
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while checking the user existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -464,7 +475,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (resultSet.next()) {
                 isExisting = true;
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "An error occurred while checking the role existence in the database";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -521,7 +534,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
             if (userList.size() > 0) {
                 names = userList.toArray(new String[userList.size()]);
             }
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "Error occurred while retrieving the user list for a given role.";
             log.error(message, e);
             throw new UserStoreException(message, e);
@@ -685,7 +700,9 @@ public class JDBCUserStoreManager implements UserStoreManager {
         Connection dbConnection = null;
         try {
             dbConnection = getDBConnection();
+            commitTransaction(dbConnection);
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             String message = "An error occured while connecting to the database";
             log.error(message, e);
             throw new UserStoreException(message);
@@ -871,6 +888,38 @@ public class JDBCUserStoreManager implements UserStoreManager {
             String message = "Error occurred while preparing the password.";
             log.error(message, e);
             throw new UserStoreException(message, e);
+        }
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection Database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
+
+    /**
+     * Commit the transaction.
+     *
+     * @param dbConnection database connection.
+     */
+    private void commitTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.commit();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while commit transactions. ", e1);
         }
     }
 }
