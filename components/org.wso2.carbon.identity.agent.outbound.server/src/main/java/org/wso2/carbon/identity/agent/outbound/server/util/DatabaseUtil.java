@@ -184,4 +184,19 @@ public class DatabaseUtil {
         }
     }
 
+    /**
+     * Commit the transaction.
+     *
+     * @param dbConnection database connection.
+     */
+    public static void commitTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.commit();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while commit transactions. ", e1);
+        }
+    }
 }

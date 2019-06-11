@@ -58,7 +58,7 @@ public class AgentMgtDao {
             prepStmt.setInt(3, accessTokenId);
             prepStmt.setString(4, node);
             prepStmt.executeUpdate();
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while updating connection client node: " + node + " server node: " +
@@ -87,7 +87,7 @@ public class AgentMgtDao {
             prepStmt.setString(1, status);
             prepStmt.setString(2, serverNode);
             prepStmt.executeUpdate();
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while updating connection status server node: " + serverNode;
@@ -121,7 +121,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isValid = true;
             }
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking node connection node: " + node;
@@ -156,7 +156,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 serverNode = resultSet.getString(1);
             }
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking server connected for : " + node;
@@ -189,7 +189,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isExist = true;
             }
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking connection node: " + node;
@@ -217,7 +217,7 @@ public class AgentMgtDao {
             prepStmt.setString(3, connection.getStatus());
             prepStmt.setString(4, connection.getServerNode());
             prepStmt.executeUpdate();
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while adding connection information.";
@@ -256,7 +256,7 @@ public class AgentMgtDao {
                 agentConnection.setServerNode(resultSet.getString("UM_SERVER_NODE"));
                 agentConnections.add(agentConnection);
             }
-            dbConnection.commit();
+            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
             DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while reading agent connection information tenant: " +  tenantDomain +
