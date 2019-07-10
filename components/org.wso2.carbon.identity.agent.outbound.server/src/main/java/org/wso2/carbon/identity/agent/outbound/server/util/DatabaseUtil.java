@@ -37,15 +37,34 @@ public class DatabaseUtil {
     private static DataSource jdbcds = loadUserStoreSpacificDataSoruce();
 
     /**
+     * Returns an database connection for Identity data source.
+     *
+     * @return dbConnection
+     * @throws SQLException
+     * @Deprecated The getDBConnection should handle both transaction and non-transaction connection. Earlier it
+     * handle only the transactionConnection. Therefore this method was deprecated and changed as handle both
+     * transaction and non-transaction connection. getDBConnection(boolean shouldApplyTransaction) method used as
+     * alternative of this method.
+     */
+    @Deprecated
+    public static Connection getDBConnection() throws SQLException {
+
+        return getDBConnection(true);
+    }
+
+    /**
      * Get database connection.
      * @return SQL connection
      * @throws SQLException
      */
-    public static Connection getDBConnection() throws SQLException {
+    public static Connection getDBConnection(boolean shouldApplyTransaction) throws SQLException {
+
         Connection dbConnection = getJDBCDataSource().getConnection();
-        dbConnection.setAutoCommit(false);
-        if (dbConnection.getTransactionIsolation() != java.sql.Connection.TRANSACTION_READ_COMMITTED) {
-            dbConnection.setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+        if (shouldApplyTransaction) {
+            dbConnection.setAutoCommit(false);
+            if (dbConnection.getTransactionIsolation() != java.sql.Connection.TRANSACTION_READ_COMMITTED) {
+                dbConnection.setTransactionIsolation(java.sql.Connection.TRANSACTION_READ_COMMITTED);
+            }
         }
         return dbConnection;
     }

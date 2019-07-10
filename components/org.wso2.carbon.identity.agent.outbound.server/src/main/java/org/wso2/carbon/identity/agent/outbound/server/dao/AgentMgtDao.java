@@ -111,7 +111,7 @@ public class AgentMgtDao {
         ResultSet resultSet = null;
         boolean isValid = false;
         try {
-            dbConnection = DatabaseUtil.getDBConnection();
+            dbConnection = DatabaseUtil.getDBConnection(false);
             prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_IS_AGENT_NODE_CONNECTED);
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
@@ -121,9 +121,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isValid = true;
             }
-            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking node connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -146,7 +144,7 @@ public class AgentMgtDao {
         ResultSet resultSet = null;
         String serverNode = null;
         try {
-            dbConnection = DatabaseUtil.getDBConnection();
+            dbConnection = DatabaseUtil.getDBConnection(false);
             prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_AGENT_SERVER_CONNECTED);
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
@@ -156,9 +154,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 serverNode = resultSet.getString(1);
             }
-            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking server connected for : " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -180,7 +176,7 @@ public class AgentMgtDao {
         ResultSet resultSet = null;
         boolean isExist = false;
         try {
-            dbConnection = DatabaseUtil.getDBConnection();
+            dbConnection = DatabaseUtil.getDBConnection(false);
             prepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_IS_AGENT_CONNECTION_EXIST);
             prepStmt.setInt(1, accessTokenId);
             prepStmt.setString(2, node);
@@ -189,9 +185,7 @@ public class AgentMgtDao {
             if (resultSet.next()) {
                 isExist = true;
             }
-            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while checking connection node: " + node;
             LOGGER.error(errorMessage, e);
         } finally {
@@ -242,7 +236,7 @@ public class AgentMgtDao {
         ResultSet resultSet = null;
         List<AgentConnection> agentConnections = new ArrayList<>();
         try {
-            dbConnection = DatabaseUtil.getDBConnection();
+            dbConnection = DatabaseUtil.getDBConnection(false);
             insertTokenPrepStmt = dbConnection.prepareStatement(SQLQueries.QUERY_GET_ALL_CONNECTIONS);
             insertTokenPrepStmt.setString(1, status);
             insertTokenPrepStmt.setString(2, domain);
@@ -256,9 +250,7 @@ public class AgentMgtDao {
                 agentConnection.setServerNode(resultSet.getString("UM_SERVER_NODE"));
                 agentConnections.add(agentConnection);
             }
-            DatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            DatabaseUtil.rollbackTransaction(dbConnection);
             String errorMessage = "Error occurred while reading agent connection information tenant: " +  tenantDomain +
                     " domain: " + domain + " status: " + status;
             LOGGER.error(errorMessage, e);
