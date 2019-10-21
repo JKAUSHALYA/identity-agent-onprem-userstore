@@ -69,7 +69,6 @@ public class UserStoreServerEndpoint {
     private Map<String, Boolean> isOnCloseNeededMap = new HashMap<>();
 
     public UserStoreServerEndpoint(SessionHandler serverHandler, String serverNode) {
-
         this.serverHandler = serverHandler;
         this.serverNode = serverNode;
         initializeConnections();
@@ -79,18 +78,15 @@ public class UserStoreServerEndpoint {
      * Initializing all the agent connection established with server node.
      */
     private void initializeConnections() {
-
         AgentMgtDao agentMgtDao = new AgentMgtDao();
         agentMgtDao.updateConnectionStatus(serverNode, UserStoreConstants.CLIENT_CONNECTION_STATUS_CONNECTION_FAILED);
     }
 
     /**
      * Process response message and send to response queue.
-     *
      * @param message Message
      */
     private void processResponse(String message) {
-
         JMSConnectionFactory connectionFactory = new JMSConnectionFactory();
         Connection connection = null;
         MessageProducer producer;
@@ -116,13 +112,10 @@ public class UserStoreServerEndpoint {
             UserOperation responseOperation = new UserOperation();
             responseOperation.setCorrelationId(correlationId);
             responseOperation.setResponseData(responseData.toString());
-            LOGGER.info("!!!!!!!!!!~~~~~~~~~~~~~~" +  responseOperation.getResponseData());
-
 
             ObjectMessage responseMessage = session.createObjectMessage();
             responseMessage.setObject(responseOperation);
             responseMessage.setJMSCorrelationID(correlationId);
-            LOGGER.info("!!!!!!!!!!" + responseMessage);
             producer.send(responseMessage);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Finished processing response message: " + message);
@@ -144,12 +137,10 @@ public class UserStoreServerEndpoint {
 
     /**
      * Get access token header "accesstoken" from user properties
-     *
      * @param userProperties User properties
      * @return Access token
      */
     private String getAccessTokenFromUserProperties(Map<String, Object> userProperties) {
-
         String authorizationHeader = (String) userProperties.get(AUTHORIZATION_HEADER);
         if (!StringUtils.isNullOrEmpty(authorizationHeader)) {
             String[] splitValues = authorizationHeader.trim().split(" ");
@@ -162,13 +153,11 @@ public class UserStoreServerEndpoint {
 
     @OnOpen
     public void onOpen(@PathParam("node") String node, Session session) {
-
         handleSession(getAccessTokenFromUserProperties(session.getUserProperties()), node, session);
     }
 
     /**
      * Handle session
-     *
      * @param token   access token
      * @param node    Client node
      * @param session web socket session
@@ -210,13 +199,11 @@ public class UserStoreServerEndpoint {
 
     /**
      * Send error message to client
-     *
      * @param session web socket session
      * @param message Error message
      * @throws IOException
      */
     private void sendErrorMessage(Session session, String message) throws IOException, JSONException {
-
         LOGGER.error(message);
         UserOperation userOperation = new UserOperation();
         userOperation.setRequestType(UserStoreConstants.UM_OPERATION_TYPE_ERROR);
@@ -241,7 +228,6 @@ public class UserStoreServerEndpoint {
 
     @OnMessage
     public void onBinaryMessage(byte[] bytes, Session session) {
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Reading binary Message");
         }
@@ -279,12 +265,10 @@ public class UserStoreServerEndpoint {
 
     @OnError
     public void onError(Throwable throwable, Session session) {
-
         LOGGER.error("Error found in method : " + throwable.toString());
     }
 
     private HttpURLConnection getHttpURLConnection(String connectedServer, String node) throws IOException {
-
         LOGGER.info("Client : " + node + " is connected to Server Node : " + connectedServer);
         URL url = new URL(BROKER_PROTOCOL + "://" + connectedServer + ":" + BROKER_PORT + "/" + STATUS_EP_NAME);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
